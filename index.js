@@ -1,5 +1,6 @@
 const electron = require("electron");
 const uuid = require("uuid").v4;
+const fs = require('fs');
 const {
     app, 
     BrowserWindow, 
@@ -11,6 +12,13 @@ let createWindow;
 let listWindow;
 let aboutWindow;
 let allAppointment = [];
+
+fs.readFile("db.json", (err, jsonAppointment) => {
+    if(!err){
+        const oldAppointment = JSON.parse(jsonAppointment);
+        allAppointment = oldAppointment;
+    }
+});
 
 app.allowRendererProcessReuse = false;
 
@@ -24,6 +32,9 @@ app.on("ready", ()=>{
 
     todayWindow. loadURL(`file://${__dirname}/today.html`);
     todayWindow.on("closed", () => {
+
+        const jsonAppointment = JSON.stringify(allAppointment);
+        fs.writeFileSync("db.json", jsonAppointment);
 
         app.quit();
         todayWindow = null;
@@ -100,7 +111,7 @@ ipcMain.on("appointment:done", (event, id) => {
     allAppointment.forEach((appointment) => {
         appointment.done = 1;
     });
-    
+
     sendTodayAppointments();
 });
 
